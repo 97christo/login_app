@@ -26,6 +26,14 @@ public class LoginServlet extends GenericServlet {
 		out.println("<p>id: " + id + "</p>");
 		out.println("<p>pw: " + pw + "</p>");
 		out.println("<p>from tomcat server</p>");
+		
+//		=============================================		
+//		아직 db와 연결되지 않아 부하 발생용 코드를 임시로 추가
+		System.out.println("Generating load for test");
+		for(int i = 0; i < 100; i++) {
+			System.out.println((i * i - 1) / (i + 1));
+		}
+//		=============================================
 	}
 
 }
