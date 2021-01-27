@@ -1,7 +1,11 @@
 
-
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 
 import javax.servlet.GenericServlet;
 import javax.servlet.ServletException;
@@ -15,25 +19,66 @@ import javax.servlet.annotation.WebServlet;
 @SuppressWarnings("serial")
 @WebServlet("/login")
 public class LoginServlet extends GenericServlet {
-	
+
 	public void service(ServletRequest request, ServletResponse response) throws ServletException, IOException {
-		String id = request.getParameter("id");
-		String pw = request.getParameter("pw");	
+		String input_id = request.getParameter("id");
+		String input_pw = request.getParameter("pw");
 		
 		response.setContentType("text/html;charset=UTF-8");
 		PrintWriter out = response.getWriter();
-		
-		out.println("<p>id: " + id + "</p>");
-		out.println("<p>pw: " + pw + "</p>");
-		out.println("<p>from tomcat server</p>");
-		
-//		=============================================		
-//		아직 db와 연결되지 않아 부하 발생용 코드를 임시로 추가
-		System.out.println("Generating load for test");
-		for(int i = 0; i < 100; i++) {
-			System.out.println((i * i - 1) / (i + 1));
+
+		String db_url = "jdbc:mysql://test-db1.cjq318fitl2e.ap-northeast-2.rds.amazonaws.com:3306";
+		String db_user = "admin";
+		String db_pwd = "qwer1234";
+		String db_name = "/database1";
+
+		try {
+			Class.forName("com.mysql.cj.jdbc.Driver");
+		} catch (ClassNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
-//		=============================================
+
+		try {
+			Connection conn = DriverManager.getConnection(db_url + db_name, db_user, db_pwd);
+
+			String query = "SELECT * FROM userData WHERE id='" + input_id + "'";
+			System.out.println("query: " + query);
+			
+			PreparedStatement ps = conn.prepareStatement(query);
+			ResultSet rs = ps.executeQuery();
+			
+			boolean isEmpty = true;
+			
+			if(rs.next()) {
+				isEmpty = false;
+				
+				String result_id = rs.getString("id");
+				String result_pw = rs.getString("pw");
+				
+				if(result_pw.equals(input_pw)) {
+					out.println("<p>로그인 성공! (id: " + result_id + ")</p>");
+				} else {
+					out.println("<p>로그인 실패. (pw 틀림)</p>");
+				}				
+			}
+			
+			if(isEmpty) {
+				out.println("<p>존재하지 않는 id</p>");
+			}
+			
+			rs.close();
+			ps.close();
+			conn.close();			
+			
+
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+
+
 	}
 
 }
